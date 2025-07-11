@@ -1,0 +1,46 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dormitory_db
+    username: dorm_user
+    password: dorm_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  application:
+    name: dormitory-manager
+
+  # DevTools dla szybszego developmentu
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
+# Konfiguracja JWT (do autoryzacji)
+jwt:
+  secret: mySecretKey123!@#
+  expiration: 86400000 # 24 godziny
+
+# Aktuator dla monitoringu
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logowanie
+logging:
+  level:
+    com.dorm.manag: DEBUG
+    org.springframework.security: DEBUG
