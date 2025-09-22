@@ -103,6 +103,25 @@ public class Reservation {
     @Column(name = "actual_end_time")
     private LocalDateTime actualEndTime; // When user actually finished
 
+    // Key pickup/return tracking
+    @Column(name = "key_picked_up")
+    private Boolean keyPickedUp = false;
+
+    @Column(name = "key_picked_up_at")
+    private LocalDateTime keyPickedUpAt;
+
+    @Column(name = "key_picked_up_by")
+    private String keyPickedUpBy;
+
+    @Column(name = "key_returned")
+    private Boolean keyReturned = false;
+
+    @Column(name = "key_returned_at")
+    private LocalDateTime keyReturnedAt;
+
+    @Column(name = "key_returned_to")
+    private String keyReturnedTo;
+
     // Constructors
     public Reservation(User user, ReservableResource resource, LocalDateTime startTime, LocalDateTime endTime) {
         this.user = user;

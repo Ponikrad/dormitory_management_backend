@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final UserService userService;
     private final PdfService pdfService;
 
     @Transactional
