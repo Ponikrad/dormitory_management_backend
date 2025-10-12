@@ -2,12 +2,16 @@ package com.dorm.manag.controller;
 
 import com.dorm.manag.entity.User;
 import com.dorm.manag.service.UserService;
+import com.dorm.manag.dto.UpdateUserRequest;
+import com.dorm.manag.repository.UserRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -23,6 +27,8 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(Authentication authentication) {
@@ -47,13 +53,15 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<?> updateCurrentUser(@RequestBody User userDetails, Authentication authentication) {
+    public ResponseEntity<?> updateCurrentUser(
+            @RequestBody UpdateUserRequest updateRequest,
+            Authentication authentication) {
         try {
             String username = authentication.getName();
             User currentUser = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            User updatedUser = userService.updateUser(currentUser.getId(), userDetails);
+            User updatedUser = userService.updateUserFields(currentUser, updateRequest);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User updated successfully");
@@ -65,7 +73,7 @@ public class UserController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to update user");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // ← DODAJ RETURN!
         }
     }
 
@@ -112,9 +120,14 @@ public class UserController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<?> updateUser(
+            @PathVariable Long id,
+            @RequestBody UpdateUserRequest updateRequest) {
         try {
-            User updatedUser = userService.updateUser(id, userDetails);
+            User user = userService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            User updatedUser = userService.updateUserFields(user, updateRequest);
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "User updated successfully");
@@ -126,7 +139,7 @@ public class UserController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to update user");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // ← DODAJ RETURN!
         }
     }
 
@@ -166,6 +179,54 @@ public class UserController {
             errorResponse.put("error", "Failed to retrieve statistics");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<?> changePassword(
+            @RequestBody Map<String, String> passwords,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            String oldPassword = passwords.get("oldPassword");
+            String newPassword = passwords.get("newPassword");
+
+            // Sprawdź czy stare hasło jest poprawne
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("error", "Invalid old password"));
+            }
+
+            // Ustaw nowe hasło
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } catch (Exception e) {
+            log.error("Error changing password: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "Failed to change password"));
+        }
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<?> searchUsers(@RequestParam String query) {
+        try {
+            List<User> users = userRepository.findByFirstNameContainingOrLastNameContaining(query);
+
+            List<Map<String, Object>> userResponses = users.stream()
+                    .map(this::createUserResponse)
+                    .toList();
+
+            return ResponseEntity.ok(userResponses);
+        } catch (Exception e) {
+            log.error("Error searching users: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to search users"));
         }
     }
 

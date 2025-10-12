@@ -1,5 +1,7 @@
 package com.dorm.manag.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -24,17 +26,21 @@ public class RegisterRequest {
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;
 
+    @JsonProperty("first_name")
     @NotBlank(message = "First name is required")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
     private String firstName;
 
+    @JsonProperty("last_name")
     @NotBlank(message = "Last name is required")
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
     private String lastName;
 
+    @JsonProperty("phone_number")
     @Pattern(regexp = "^[+]?[0-9]{9,15}$", message = "Please provide a valid phone number")
     private String phoneNumber;
 
+    @JsonProperty("room_number")
     @Size(max = 20, message = "Room number must not exceed 20 characters")
     private String roomNumber;
 

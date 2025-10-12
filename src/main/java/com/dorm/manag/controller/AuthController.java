@@ -1,5 +1,6 @@
 package com.dorm.manag.controller;
 
+import com.dorm.manag.config.JwtTokenProvider;
 import com.dorm.manag.dto.LoginRequest;
 import com.dorm.manag.dto.RegisterRequest;
 import com.dorm.manag.service.AuthService;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -75,15 +78,25 @@ public class AuthController {
     }
 
     @GetMapping("/check")
-    public ResponseEntity<?> checkAuth(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("authenticated", true);
-            response.put("username", authentication.getName());
-            return ResponseEntity.ok(response);
+    public ResponseEntity<?> checkAuthPublic(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+
+            try {
+                if (jwtTokenProvider.validateToken(token)) {
+                    String username = jwtTokenProvider.getUsernameFromToken(token);
+                    response.put("authenticated", true);
+                    response.put("username", username);
+                    return ResponseEntity.ok(response);
+                }
+            } catch (Exception e) {
+                log.debug("Invalid token: {}", e.getMessage());
+            }
         }
 
-        Map<String, Object> response = new HashMap<>();
         response.put("authenticated", false);
         return ResponseEntity.ok(response);
     }

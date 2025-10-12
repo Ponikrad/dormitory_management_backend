@@ -32,29 +32,72 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String jwt = getJwtFromRequest(request);
+        try {
+            // Pobierz ścieżkę requestu
+            String path = request.getRequestURI();
 
-        if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
-            String username = jwtTokenProvider.getUsernameFromToken(jwt);
+            // Pomiń filtr JWT dla publicznych endpointów
+            if (isPublicEndpoint(path)) {
+                log.debug("Public endpoint accessed: {}", path);
+                filterChain.doFilter(request, response);
+                return;
+            }
 
-            UserDetails userDetails = userService.loadUserByUsername(username);
+            // Pobierz token z headera
+            String jwt = getJwtFromRequest(request);
 
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails,
-                    null, userDetails.getAuthorities());
+            // Jeśli token istnieje i jest prawidłowy, ustaw autentykację
+            if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
+                String username = jwtTokenProvider.getUsernameFromToken(jwt);
 
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UserDetails userDetails = userService.loadUserByUsername(username);
 
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                log.debug("User '{}' authenticated successfully", username);
+            }
+        } catch (Exception ex) {
+            log.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Sprawdza czy endpoint jest publiczny (nie wymaga tokena JWT)
+     */
+    private boolean isPublicEndpoint(String path) {
+        return path.startsWith("/api/auth/") || // Wszystkie endpointy auth
+                path.startsWith("/api/cards/verify/") || // Weryfikacja kart
+                path.equals("/api/auth/login") || // Login
+                path.equals("/api/auth/register") || // Rejestracja
+                path.equals("/api/auth/logout") || // Logout
+                path.equals("/api/auth/check") || // Check auth status
+                path.startsWith("/actuator/") || // Actuator endpoints
+                path.startsWith("/swagger-ui/") || // Swagger UI
+                path.startsWith("/v3/api-docs/") || // OpenAPI docs
+                path.equals("/api-docs") || // API docs
+                path.equals("/swagger-ui.html"); // Swagger HTML
+    }
+
+    /**
+     * Wyciąga token JWT z nagłówka Authorization
+     */
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
+
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
+
         return null;
     }
 }

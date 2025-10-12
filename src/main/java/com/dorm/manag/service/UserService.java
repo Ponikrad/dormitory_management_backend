@@ -1,5 +1,6 @@
 package com.dorm.manag.service;
 
+import com.dorm.manag.dto.UpdateUserRequest;
 import com.dorm.manag.entity.Role;
 import com.dorm.manag.entity.User;
 import com.dorm.manag.repository.UserRepository;
@@ -70,6 +71,27 @@ public class UserService implements UserDetailsService {
         return userRepository.save(user);
     }
 
+    @Transactional
+    public User updateUserFields(User user, UpdateUserRequest updateRequest) {
+        if (updateRequest.getFirstName() != null && !updateRequest.getFirstName().isEmpty()) {
+            user.setFirstName(updateRequest.getFirstName());
+        }
+        if (updateRequest.getLastName() != null && !updateRequest.getLastName().isEmpty()) {
+            user.setLastName(updateRequest.getLastName());
+        }
+        if (updateRequest.getEmail() != null && !updateRequest.getEmail().isEmpty()) {
+            user.setEmail(updateRequest.getEmail());
+        }
+        if (updateRequest.getPhoneNumber() != null && !updateRequest.getPhoneNumber().isEmpty()) {
+            user.setPhoneNumber(updateRequest.getPhoneNumber());
+        }
+        if (updateRequest.getRoomNumber() != null && !updateRequest.getRoomNumber().isEmpty()) {
+            user.setRoomNumber(updateRequest.getRoomNumber());
+        }
+
+        return userRepository.save(user);
+    }
+
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
@@ -83,20 +105,6 @@ public class UserService implements UserDetailsService {
     }
 
     @Transactional
-    public User updateUser(Long id, User userDetails) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
-
-        user.setFirstName(userDetails.getFirstName());
-        user.setLastName(userDetails.getLastName());
-        user.setEmail(userDetails.getEmail());
-        user.setPhoneNumber(userDetails.getPhoneNumber());
-        user.setRoomNumber(userDetails.getRoomNumber());
-
-        return userRepository.save(user);
-    }
-
-    @Transactional
     public void deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
@@ -106,7 +114,7 @@ public class UserService implements UserDetailsService {
     }
 
     public List<User> findAllStudents() {
-        return userRepository.findByRole("STUDENT");
+        return userRepository.findByRole();
     }
 
     public List<User> findActiveUsers() {

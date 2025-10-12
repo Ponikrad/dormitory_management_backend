@@ -20,8 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
-    @Query("SELECT u FROM User u WHERE u.role = :role")
-    List<User> findByRole(@Param("role") String role);
+    @Query("SELECT u FROM User u WHERE u.role = 'STUDENT'")
+    List<User> findByRole();
 
     @Query("SELECT u FROM User u WHERE u.firstName LIKE %:name% OR u.lastName LIKE %:name%")
     List<User> findByFirstNameContainingOrLastNameContaining(@Param("name") String name);
@@ -31,4 +31,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.isActive = true")
     List<User> findActiveUsers();
+
 }
