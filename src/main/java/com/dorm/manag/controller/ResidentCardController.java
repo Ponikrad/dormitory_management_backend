@@ -27,6 +27,8 @@ public class ResidentCardController {
     private final ResidentCardService residentCardService;
     private final UserService userService;
 
+    // ========== SPECIFIC ENDPOINTS FIRST (to avoid routing conflicts) ==========
+
     @GetMapping("/my-card")
     public ResponseEntity<?> getMyCard(Authentication authentication) {
         try {
@@ -100,28 +102,6 @@ public class ResidentCardController {
         }
     }
 
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
-    public ResponseEntity<?> getCardByUserId(@PathVariable Long userId) {
-        try {
-            Optional<ResidentCardDto> card = residentCardService.getCardByUserId(userId);
-
-            if (card.isPresent()) {
-                return ResponseEntity.ok(card.get());
-            } else {
-                Map<String, String> response = new HashMap<>();
-                response.put("message", "No active card found for user");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-            }
-        } catch (Exception e) {
-            log.error("Error retrieving card for user {}: {}", userId, e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve card");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
     @GetMapping("/active")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllActiveCards() {
@@ -152,24 +132,6 @@ public class ResidentCardController {
         }
     }
 
-    @DeleteMapping("/deactivate/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deactivateCard(@PathVariable Long userId) {
-        try {
-            residentCardService.deactivateCard(userId);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Card deactivated successfully");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error deactivating card for user {}: {}", userId, e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to deactivate card");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getCardStats() {
@@ -185,6 +147,48 @@ public class ResidentCardController {
             log.error("Error retrieving card statistics: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to retrieve statistics");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    // ========== DYNAMIC ENDPOINTS LAST (with {id} parameter) ==========
+
+    @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
+    public ResponseEntity<?> getCardByUserId(@PathVariable Long userId) {
+        try {
+            Optional<ResidentCardDto> card = residentCardService.getCardByUserId(userId);
+
+            if (card.isPresent()) {
+                return ResponseEntity.ok(card.get());
+            } else {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "No active card found for user");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+        } catch (Exception e) {
+            log.error("Error retrieving card for user {}: {}", userId, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve card");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @DeleteMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deactivateCard(@PathVariable Long userId) {
+        try {
+            residentCardService.deactivateCard(userId);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Card deactivated successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error deactivating card for user {}: {}", userId, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to deactivate card");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }

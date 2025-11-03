@@ -33,26 +33,25 @@ public class PdfService {
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdf = new PdfDocument(writer);
 
-            // Create document with A4 and leave top margin for the header we will draw
-            // manually
+            // Create document with A4
             Document document = new Document(pdf, PageSize.A4);
-            float topMargin = 80f; // leave space for manual header
-            document.setMargins(topMargin, 36f, 36f, 36f);
+            document.setMargins(80f, 36f, 60f, 36f);
 
-            // prepare fonts
+            // Prepare fonts
             PdfFont headerFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
             PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
-            // Draw header on first page (centered)
-            drawCenteredTextOnPage(pdf, 1, headerFont, 20f, "DORMITORY PAYMENT RECEIPT",
-                    pdf.getDefaultPageSize().getTop() - 30f);
+            // Add header
+            Paragraph header = new Paragraph("DORMITORY PAYMENT RECEIPT")
+                    .setFont(headerFont)
+                    .setFontSize(20f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER)
+                    .setMarginBottom(20f);
+            document.add(header);
 
-            // Small gap
-            document.add(new Paragraph("\n"));
-
-            // Payment details table (simple 2-column table)
+            // Payment details table
             Table table = new Table(2);
-            table.setWidth(PageSize.A4.getWidth() - 72f); // page width minus left+right margins (36+36)
+            table.setWidth(PageSize.A4.getWidth() - 72f);
 
             addTableRow(table, "Receipt ID:", "RCP-" + payment.getId());
             addTableRow(table, "Transaction ID:", payment.getTransactionId());
@@ -82,17 +81,23 @@ public class PdfService {
 
             document.add(table);
 
-            // After adding content, draw footer on the last page (centered)
-            String footerLine1 = "This is an automatically generated receipt.";
-            String footerLine2 = "Generated on: " + java.time.LocalDateTime.now().format(DATE_FORMATTER);
+            // Add some space
+            document.add(new Paragraph("\n"));
 
-            // choose a small y offset from bottom
-            PdfPage lastPage = pdf.getLastPage();
-            float footerY1 = lastPage.getPageSize().getBottom() + 30f;
-            float footerY2 = lastPage.getPageSize().getBottom() + 18f;
+            // Footer
+            Paragraph footerLine1 = new Paragraph("This is an automatically generated receipt.")
+                    .setFont(normalFont)
+                    .setFontSize(10f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
 
-            drawCenteredTextOnPage(pdf, pdf.getNumberOfPages(), normalFont, 10f, footerLine1, footerY1);
-            drawCenteredTextOnPage(pdf, pdf.getNumberOfPages(), normalFont, 8f, footerLine2, footerY2);
+            Paragraph footerLine2 = new Paragraph(
+                    "Generated on: " + java.time.LocalDateTime.now().format(DATE_FORMATTER))
+                    .setFont(normalFont)
+                    .setFontSize(8f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
+
+            document.add(footerLine1);
+            document.add(footerLine2);
 
             document.close();
 
@@ -100,7 +105,7 @@ public class PdfService {
             return baos.toByteArray();
 
         } catch (Exception e) {
-            log.error("Error generating PDF receipt for payment {}: {}", payment.getId(), e.getMessage());
+            log.error("Error generating PDF receipt for payment {}: {}", payment.getId(), e.getMessage(), e);
             throw new RuntimeException("Failed to generate PDF receipt", e);
         }
     }
@@ -114,17 +119,20 @@ public class PdfService {
             PdfDocument pdf = new PdfDocument(writer);
 
             Document document = new Document(pdf, PageSize.A4);
-            float topMargin = 80f;
-            document.setMargins(topMargin, 36f, 36f, 36f);
+            document.setMargins(80f, 36f, 60f, 36f);
 
             PdfFont headerFont = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
             PdfFont normalFont = PdfFontFactory.createFont(StandardFonts.HELVETICA);
 
-            drawCenteredTextOnPage(pdf, 1, headerFont, 20f, "DORMITORY ISSUE REPORT",
-                    pdf.getDefaultPageSize().getTop() - 30f);
+            // Add header
+            Paragraph header = new Paragraph("DORMITORY ISSUE REPORT")
+                    .setFont(headerFont)
+                    .setFontSize(20f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER)
+                    .setMarginBottom(20f);
+            document.add(header);
 
-            document.add(new Paragraph("\n"));
-
+            // Issue details table
             Table table = new Table(2);
             table.setWidth(PageSize.A4.getWidth() - 72f);
 
@@ -163,30 +171,51 @@ public class PdfService {
             document.add(table);
 
             // Description & notes
-            document.add(new Paragraph("\nDescription:").setBold());
+            document.add(new Paragraph("\nDescription:")
+                    .setFont(headerFont)
+                    .setFontSize(12f)
+                    .setMarginTop(10f));
             document.add(
-                    new Paragraph(issue.getDescription() != null ? issue.getDescription() : "No description provided"));
+                    new Paragraph(issue.getDescription() != null ? issue.getDescription() : "No description provided")
+                            .setFont(normalFont)
+                            .setFontSize(10f));
 
             if (issue.getAdminNotes() != null && !issue.getAdminNotes().trim().isEmpty()) {
-                document.add(new Paragraph("\nAdmin Notes:").setBold());
-                document.add(new Paragraph(issue.getAdminNotes()));
+                document.add(new Paragraph("\nAdmin Notes:")
+                        .setFont(headerFont)
+                        .setFontSize(12f)
+                        .setMarginTop(10f));
+                document.add(new Paragraph(issue.getAdminNotes())
+                        .setFont(normalFont)
+                        .setFontSize(10f));
             }
 
             if (issue.getResolutionNotes() != null && !issue.getResolutionNotes().trim().isEmpty()) {
-                document.add(new Paragraph("\nResolution Notes:").setBold());
-                document.add(new Paragraph(issue.getResolutionNotes()));
+                document.add(new Paragraph("\nResolution Notes:")
+                        .setFont(headerFont)
+                        .setFontSize(12f)
+                        .setMarginTop(10f));
+                document.add(new Paragraph(issue.getResolutionNotes())
+                        .setFont(normalFont)
+                        .setFontSize(10f));
             }
 
-            // Footer on last page
-            String footerLine1 = "This is an automatically generated report.";
-            String footerLine2 = "Generated on: " + java.time.LocalDateTime.now().format(DATE_FORMATTER);
+            // Footer
+            document.add(new Paragraph("\n"));
 
-            PdfPage lastPage = pdf.getLastPage();
-            float footerY1 = lastPage.getPageSize().getBottom() + 30f;
-            float footerY2 = lastPage.getPageSize().getBottom() + 18f;
+            Paragraph footerLine1 = new Paragraph("This is an automatically generated report.")
+                    .setFont(normalFont)
+                    .setFontSize(10f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
 
-            drawCenteredTextOnPage(pdf, pdf.getNumberOfPages(), normalFont, 10f, footerLine1, footerY1);
-            drawCenteredTextOnPage(pdf, pdf.getNumberOfPages(), normalFont, 8f, footerLine2, footerY2);
+            Paragraph footerLine2 = new Paragraph(
+                    "Generated on: " + java.time.LocalDateTime.now().format(DATE_FORMATTER))
+                    .setFont(normalFont)
+                    .setFontSize(8f)
+                    .setTextAlignment(com.itextpdf.layout.properties.TextAlignment.CENTER);
+
+            document.add(footerLine1);
+            document.add(footerLine2);
 
             document.close();
 
@@ -194,33 +223,17 @@ public class PdfService {
             return baos.toByteArray();
 
         } catch (Exception e) {
-            log.error("Error generating PDF report for issue {}: {}", issue.getId(), e.getMessage());
+            log.error("Error generating PDF report for issue {}: {}", issue.getId(), e.getMessage(), e);
             throw new RuntimeException("Failed to generate PDF report", e);
         }
     }
 
     private void addTableRow(Table table, String key, String value) {
-        table.addCell(new Paragraph(key).setBold());
-        table.addCell(new Paragraph(value != null ? value : "N/A"));
-    }
-
-    /**
-     * Draw text centered on a specific page (by page number). Uses kernel PdfCanvas
-     * so we avoid layout property enums entirely.
-     */
-    private void drawCenteredTextOnPage(PdfDocument pdf, int pageNumber, PdfFont font, float fontSize,
-            String text, float y) {
-        PdfPage page = pdf.getPage(pageNumber);
-        PdfCanvas canvas = new PdfCanvas(page);
-        float pageWidth = page.getPageSize().getWidth();
-        float textWidth = font.getWidth(text, fontSize);
-        float x = (pageWidth - textWidth) / 2f;
-
-        canvas.beginText()
-                .setFontAndSize(font, fontSize)
-                .moveText(x, y)
-                .showText(text)
-                .endText();
+        table.addCell(new Paragraph(key)
+                .setFontSize(10f)
+                .setBold());
+        table.addCell(new Paragraph(value != null ? value : "N/A")
+                .setFontSize(10f));
     }
 
     public void savePdfToFile(byte[] pdfBytes, String filename) {

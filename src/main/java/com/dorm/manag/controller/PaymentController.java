@@ -32,6 +32,8 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final UserService userService;
 
+    // ========== SPECIFIC ENDPOINTS FIRST (to avoid routing conflicts) ==========
+
     @PostMapping("/create")
     public ResponseEntity<?> createPayment(@Valid @RequestBody CreatePaymentRequest request,
             Authentication authentication) {
@@ -55,6 +57,84 @@ public class PaymentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
+
+    @GetMapping("/my-payments")
+    public ResponseEntity<?> getMyPayments(@RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<PaymentDto> payments;
+            if (page == 0 && size == 10) {
+                payments = paymentService.getUserPaymentHistory(user);
+            } else {
+                payments = paymentService.getUserPaymentHistory(user, page, size);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("payments", payments);
+            response.put("totalPaid", paymentService.getUserTotalPaid(user));
+            response.put("totalPending", paymentService.getUserTotalPending(user));
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error retrieving user payments: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve payments");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/pending")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPendingPayments() {
+        try {
+            List<PaymentDto> pendingPayments = paymentService.getPendingPayments();
+            return ResponseEntity.ok(pendingPayments);
+        } catch (Exception e) {
+            log.error("Error retrieving pending payments: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve pending payments");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/overdue")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getOverduePayments() {
+        try {
+            List<PaymentDto> overduePayments = paymentService.getOverduePayments();
+            return ResponseEntity.ok(overduePayments);
+        } catch (Exception e) {
+            log.error("Error retrieving overdue payments: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve overdue payments");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getPaymentStatistics() {
+        try {
+            PaymentService.PaymentStatsDto stats = paymentService.getPaymentStatistics();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            log.error("Error retrieving payment statistics: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve payment statistics");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    // ========== DYNAMIC ENDPOINTS LAST (with {id} parameter) ==========
 
     @PostMapping("/{id}/process")
     public ResponseEntity<?> processPayment(@PathVariable Long id, Authentication authentication) {
@@ -85,37 +165,6 @@ public class PaymentController {
             log.error("Error processing payment {}: {}", id, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to process payment");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/my-payments")
-    public ResponseEntity<?> getMyPayments(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            User user = userService.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-
-            List<PaymentDto> payments;
-            if (page == 0 && size == 10) {
-                payments = paymentService.getUserPaymentHistory(user);
-            } else {
-                payments = paymentService.getUserPaymentHistory(user, page, size);
-            }
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("payments", payments);
-            response.put("totalPaid", paymentService.getUserTotalPaid(user));
-            response.put("totalPending", paymentService.getUserTotalPending(user));
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error retrieving user payments: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve payments");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
@@ -187,37 +236,6 @@ public class PaymentController {
         }
     }
 
-    // Admin endpoints
-    @GetMapping("/pending")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getPendingPayments() {
-        try {
-            List<PaymentDto> pendingPayments = paymentService.getPendingPayments();
-            return ResponseEntity.ok(pendingPayments);
-        } catch (Exception e) {
-            log.error("Error retrieving pending payments: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve pending payments");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/overdue")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getOverduePayments() {
-        try {
-            List<PaymentDto> overduePayments = paymentService.getOverduePayments();
-            return ResponseEntity.ok(overduePayments);
-        } catch (Exception e) {
-            log.error("Error retrieving overdue payments: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve overdue payments");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updatePaymentStatus(@PathVariable Long id,
@@ -237,21 +255,6 @@ public class PaymentController {
             errorResponse.put("error", "Failed to update payment status");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getPaymentStatistics() {
-        try {
-            PaymentService.PaymentStatsDto stats = paymentService.getPaymentStatistics();
-            return ResponseEntity.ok(stats);
-        } catch (Exception e) {
-            log.error("Error retrieving payment statistics: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve payment statistics");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }

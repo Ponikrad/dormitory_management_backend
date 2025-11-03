@@ -2,9 +2,12 @@ package com.dorm.manag.controller;
 
 import com.dorm.manag.dto.KeyAssignmentDto;
 import com.dorm.manag.dto.KeyDto;
+import com.dorm.manag.entity.DormitoryKey;
 import com.dorm.manag.entity.KeyAssignment;
+import com.dorm.manag.entity.KeyStatus;
 import com.dorm.manag.entity.KeyType;
 import com.dorm.manag.entity.User;
+import com.dorm.manag.repository.KeyRepository;
 import com.dorm.manag.service.KeyManagementService;
 import com.dorm.manag.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ public class KeyManagementController {
 
     private final KeyManagementService keyManagementService;
     private final UserService userService;
+    private final KeyRepository keyRepository;
 
     /**
      * Pobierz wszystkie klucze (ADMIN/RECEPTIONIST)
@@ -277,15 +281,44 @@ public class KeyManagementController {
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            String description = request.get("description");
-            KeyType keyType = KeyType.valueOf(request.get("keyType").toUpperCase());
-            String roomNumber = request.getOrDefault("roomNumber", null);
+            DormitoryKey key = keyRepository.findById(keyId)
+                    .orElseThrow(() -> new RuntimeException("Key not found"));
 
-            KeyDto key = keyManagementService.updateKey(keyId, description, keyType, roomNumber, user);
+            // Aktualizuj pola
+            if (request.containsKey("description")) {
+                key.setDescription(request.get("description"));
+            }
+            if (request.containsKey("keyType")) {
+                key.setKeyType(KeyType.valueOf(request.get("keyType").toUpperCase()));
+            }
+            if (request.containsKey("roomNumber")) {
+                key.setRoomNumber(request.get("roomNumber"));
+                if (request.get("roomNumber") != null && !request.get("roomNumber").isEmpty()) {
+                    key.setFloorNumber(Integer.parseInt(request.get("roomNumber").substring(0, 1)));
+                }
+            }
+
+            // ⭐ Zmiana statusu
+            if (request.containsKey("status")) {
+                KeyStatus newStatus = KeyStatus.valueOf(request.get("status").toUpperCase());
+                key.setStatus(newStatus);
+
+                String notes = request.getOrDefault("statusChangeNotes",
+                        "Status changed to " + newStatus + " by " + username);
+                key.setAdminNotes((key.getAdminNotes() != null ? key.getAdminNotes() + "; " : "") + notes);
+            }
+
+            DormitoryKey savedKey = keyRepository.save(key);
+
+            log.info("Key {} updated by {}", key.getKeyCode(), username);
+
+            // ✅ POPRAWIONE: Użyj service do pobrania DTO
+            KeyDto keyDto = keyManagementService.getKeyById(savedKey.getId())
+                    .orElseThrow(() -> new RuntimeException("Failed to retrieve updated key"));
 
             Map<String, Object> response = new HashMap<>();
             response.put("message", "Key updated successfully");
-            response.put("key", key);
+            response.put("key", keyDto);
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {

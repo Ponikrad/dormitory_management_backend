@@ -31,6 +31,8 @@ public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
 
+    // ========== PUBLIC/USER ENDPOINTS ==========
+
     @GetMapping
     public ResponseEntity<?> getDocuments(@RequestParam(required = false) DocumentType type,
             @RequestParam(defaultValue = "false") boolean featured,
@@ -54,6 +56,38 @@ public class DocumentController {
             log.error("Error retrieving documents: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to retrieve documents");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchDocuments(@RequestParam String q, Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            List<DocumentDto> documents = documentService.searchDocuments(q, user);
+            return ResponseEntity.ok(documents);
+        } catch (Exception e) {
+            log.error("Error searching documents: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to search documents");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<?> getDocumentCategories() {
+        try {
+            DocumentType[] types = DocumentType.values();
+            return ResponseEntity.ok(types);
+        } catch (Exception e) {
+            log.error("Error retrieving document categories: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to retrieve categories");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
@@ -116,40 +150,9 @@ public class DocumentController {
         }
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<?> searchDocuments(@RequestParam String q, Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            User user = userService.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+    // ========== ADMIN ENDPOINTS ==========
 
-            List<DocumentDto> documents = documentService.searchDocuments(q, user);
-            return ResponseEntity.ok(documents);
-        } catch (Exception e) {
-            log.error("Error searching documents: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to search documents");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    @GetMapping("/categories")
-    public ResponseEntity<?> getDocumentCategories() {
-        try {
-            DocumentType[] types = DocumentType.values();
-            return ResponseEntity.ok(types);
-        } catch (Exception e) {
-            log.error("Error retrieving document categories: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("error", "Failed to retrieve categories");
-            errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-        }
-    }
-
-    // Admin endpoints
-    @PostMapping
+    @PostMapping("/upload")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> uploadDocument(@RequestParam(required = false) MultipartFile file,
             @RequestParam String title,
@@ -210,6 +213,34 @@ public class DocumentController {
             log.error("Error updating document {}: {}", id, e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to update document");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/{id}/new-version")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createNewVersion(@PathVariable Long id,
+            @RequestParam String version,
+            @RequestParam String versionNotes,
+            @RequestParam(required = false) MultipartFile file,
+            Authentication authentication) {
+        try {
+            String username = authentication.getName();
+            User user = userService.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            DocumentDto newVersion = documentService.createNewVersion(id, version, versionNotes, file, user);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "New document version created successfully");
+            response.put("document", newVersion);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            log.error("Error creating new version for document {}: {}", id, e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to create new version");
             errorResponse.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }

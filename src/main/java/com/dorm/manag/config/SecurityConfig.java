@@ -58,6 +58,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // Receptionist endpoints
                         .requestMatchers("/api/reception/**").hasAnyRole("ADMIN", "RECEPTIONIST")
+                        .requestMatchers("/api/applications/submit").permitAll() // Aplikacja bez logowania
+                        .requestMatchers("/api/applications/check").permitAll()
                         // All other requests need authentication
                         .anyRequest().authenticated());
 
