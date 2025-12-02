@@ -49,7 +49,7 @@ public class Announcement {
 
     // Target audience
     @Column(name = "target_audience")
-    private String targetAudience = "ALL"; // ALL, STUDENTS, STAFF, SPECIFIC_ROOMS
+    private String targetAudience = "ALL";
 
     @Column(name = "target_rooms")
     private String targetRooms; // Comma-separated room numbers

@@ -48,24 +48,21 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints - nie wymagają autoryzacji
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/check").permitAll()
                         .requestMatchers("/api/cards/verify/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
-                        // Admin only endpoints
+
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        // Receptionist endpoints
+
                         .requestMatchers("/api/reception/**").hasAnyRole("ADMIN", "RECEPTIONIST")
-                        .requestMatchers("/api/applications/submit").permitAll() // Aplikacja bez logowania
+                        .requestMatchers("/api/applications/submit").permitAll()
                         .requestMatchers("/api/applications/check").permitAll()
-                        // All other requests need authentication
+
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
-
-        // Dodaj JWT filter - teraz jest poprawiony i pomija publiczne endpointy
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

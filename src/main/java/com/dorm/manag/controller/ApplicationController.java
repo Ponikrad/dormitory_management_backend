@@ -30,8 +30,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
     private final UserService userService;
 
-    // ========== PUBLIC ENDPOINT (No authentication for new applications)
-    // ==========
+    // PUBLIC/STUDENTS
 
     @PostMapping("/submit")
     public ResponseEntity<?> submitApplication(@Valid @RequestBody CreateApplicationRequest request) {
@@ -52,8 +51,6 @@ public class ApplicationController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
-
-    // ========== USER ENDPOINTS (Check own application by email) ==========
 
     @GetMapping("/check")
     public ResponseEntity<?> checkApplicationByEmail(@RequestParam String email) {
@@ -76,7 +73,7 @@ public class ApplicationController {
         }
     }
 
-    // ========== ADMIN ENDPOINTS ==========
+    // ADMIN
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

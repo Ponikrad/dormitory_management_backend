@@ -30,7 +30,6 @@ public class KeyAssignmentDto {
     private String issuedByName;
     private String returnedToName;
 
-    // Calculated fields
     private Boolean active;
     private Boolean overdueNow;
     private Long hoursOverdue;

@@ -17,13 +17,11 @@ public class ReservationDto {
 
     private Long id;
 
-    // User information
     private Long userId;
     private String userFullName;
     private String userEmail;
     private String userRoomNumber;
 
-    // Resource information
     private Long resourceId;
     private String resourceName;
     private ResourceType resourceType;
@@ -31,7 +29,6 @@ public class ReservationDto {
     private String keyLocation;
     private Boolean requiresKey;
 
-    // Reservation details
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime startTime;
 
@@ -46,7 +43,6 @@ public class ReservationDto {
 
     private String adminNotes;
 
-    // Timestamps
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
@@ -62,7 +58,6 @@ public class ReservationDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime cancelledAt;
 
-    // Key management
     private Boolean keyPickedUp;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -77,7 +72,6 @@ public class ReservationDto {
 
     private String keyReturnedTo;
 
-    // Payment (mostly $0 for dormitory resources)
     private BigDecimal totalCost;
 
     private String paymentStatus;
@@ -86,7 +80,6 @@ public class ReservationDto {
 
     private Boolean reminderSent;
 
-    // Calculated fields
     private int durationMinutes;
 
     private String formattedDuration;
@@ -111,22 +104,18 @@ public class ReservationDto {
 
     private String statusColor;
 
-    // Helper methods
     public void calculateFields() {
-        // Calculate duration
         if (startTime != null && endTime != null) {
             this.durationMinutes = (int) java.time.Duration.between(startTime, endTime).toMinutes();
             this.formattedDuration = formatDuration(durationMinutes);
         }
 
-        // Calculate status flags
         this.active = status != null && status.isActive();
         this.overdue = endTime != null && LocalDateTime.now().isAfter(endTime) &&
                 (status == ReservationStatus.CHECKED_IN || status == ReservationStatus.CONFIRMED);
         this.upcoming = status == ReservationStatus.CONFIRMED &&
                 startTime != null && LocalDateTime.now().isBefore(startTime);
 
-        // Calculate action flags
         this.canCancel = status != null && status.canBeCancelled() &&
                 startTime != null && LocalDateTime.now().isBefore(startTime.minusHours(2));
         this.canCheckIn = status != null && status.canCheckIn() &&
@@ -138,12 +127,10 @@ public class ReservationDto {
                 !Boolean.TRUE.equals(keyReturned) &&
                 Boolean.TRUE.equals(requiresKey);
 
-        // Calculate time until start
         if (startTime != null) {
             this.minutesUntilStart = java.time.Duration.between(LocalDateTime.now(), startTime).toMinutes();
         }
 
-        // Set display strings
         this.statusDisplay = status != null ? status.getDisplayName() : "Unknown";
         this.statusColor = status != null ? status.getColor() : "#999999";
     }
@@ -174,7 +161,6 @@ public class ReservationDto {
         }
     }
 
-    // Display helper methods
     public String getTimeRange() {
         if (startTime == null || endTime == null)
             return "Unknown";
@@ -225,7 +211,6 @@ public class ReservationDto {
         }
     }
 
-    // Builder pattern
     public static Builder builder() {
         return new Builder();
     }

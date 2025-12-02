@@ -28,7 +28,6 @@ public class KeyDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // Calculated fields
     private String displayName;
     private String fullLocation;
     private Boolean canBeIssued;

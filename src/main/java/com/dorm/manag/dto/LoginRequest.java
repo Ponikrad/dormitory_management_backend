@@ -19,12 +19,10 @@ public class LoginRequest {
     @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
     private String password;
 
-    // Additional constructor for convenience
     public static LoginRequest of(String username, String password) {
         return new LoginRequest(username, password);
     }
 
-    // Helper method to validate basic requirements
     public boolean isValid() {
         return username != null && !username.trim().isEmpty()
                 && password != null && !password.trim().isEmpty()
@@ -32,7 +30,6 @@ public class LoginRequest {
                 && password.length() >= 6 && password.length() <= 100;
     }
 
-    // Override toString to hide password
     @Override
     public String toString() {
         return "LoginRequest{" +

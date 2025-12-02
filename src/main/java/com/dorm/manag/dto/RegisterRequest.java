@@ -44,17 +44,15 @@ public class RegisterRequest {
     @Size(max = 20, message = "Room number must not exceed 20 characters")
     private String roomNumber;
 
-    // Static factory method
     public static RegisterRequest of(String username, String email, String password,
             String firstName, String lastName) {
         return new RegisterRequest(username, email, password, firstName, lastName, null, null);
     }
 
-    // Validation helper methods
     public boolean hasValidPassword() {
         return password != null && password.length() >= 6 &&
-                password.matches(".*[A-Za-z].*") && // Contains at least one letter
-                password.matches(".*[0-9].*"); // Contains at least one number
+                password.matches(".*[A-Za-z].*") &&
+                password.matches(".*[0-9].*");
     }
 
     public boolean hasValidEmail() {
@@ -74,12 +72,10 @@ public class RegisterRequest {
                 hasValidPhoneNumber();
     }
 
-    // Helper method to get full name
     public String getFullName() {
         return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
     }
 
-    // Override toString to hide password
     @Override
     public String toString() {
         return "RegisterRequest{" +

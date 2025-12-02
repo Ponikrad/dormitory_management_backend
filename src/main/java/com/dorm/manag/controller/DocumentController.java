@@ -31,7 +31,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final UserService userService;
 
-    // ========== PUBLIC/USER ENDPOINTS ==========
+    // PUBLIC/USER
 
     @GetMapping
     public ResponseEntity<?> getDocuments(@RequestParam(required = false) DocumentType type,
@@ -150,7 +150,7 @@ public class DocumentController {
         }
     }
 
-    // ========== ADMIN ENDPOINTS ==========
+    // ADMIN
 
     @PostMapping("/upload")
     @PreAuthorize("hasRole('ADMIN')")

@@ -25,7 +25,7 @@ public class CreateIssueRequest {
     @NotNull(message = "Category is required")
     private IssueCategory category;
 
-    private IssuePriority priority; // Optional, will be auto-determined if not provided
+    private IssuePriority priority;
 
     @Size(max = 100, message = "Location details cannot exceed 100 characters")
     private String locationDetails;
@@ -43,7 +43,6 @@ public class CreateIssueRequest {
             return true;
         }
 
-        // Check for urgent keywords in description
         if (description != null) {
             String desc = description.toLowerCase();
             return desc.contains("emergency") || desc.contains("urgent") || desc.contains("danger") ||
@@ -62,7 +61,6 @@ public class CreateIssueRequest {
         return IssuePriority.determinePriority(category, description);
     }
 
-    // Static factory methods for common issues
     public static CreateIssueRequest plumbingIssue(String title, String description) {
         CreateIssueRequest request = new CreateIssueRequest();
         request.setTitle(title);
@@ -108,7 +106,6 @@ public class CreateIssueRequest {
         return request;
     }
 
-    // Helper method for quick issue creation
     public static CreateIssueRequest create(String title, String description, IssueCategory category) {
         CreateIssueRequest request = new CreateIssueRequest();
         request.setTitle(title);
@@ -124,7 +121,6 @@ public class CreateIssueRequest {
         return request;
     }
 
-    // Validation helper
     public String getValidationError() {
         if (title == null || title.trim().isEmpty()) {
             return "Title is required";
@@ -144,7 +140,7 @@ public class CreateIssueRequest {
         if (locationDetails != null && locationDetails.length() > 100) {
             return "Location details cannot exceed 100 characters";
         }
-        return null; // No validation errors
+        return null;
     }
 
     @Override

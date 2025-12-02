@@ -32,7 +32,6 @@ public class CreateReservationRequest {
     @Size(max = 500, message = "Notes cannot exceed 500 characters")
     private String notes;
 
-    // Validation methods
     public boolean isValid() {
         return resourceId != null &&
                 startTime != null &&
@@ -60,14 +59,13 @@ public class CreateReservationRequest {
 
     public boolean isValidDuration() {
         long minutes = getDurationMinutes();
-        return minutes >= 30 && minutes <= 480; // 30 minutes to 8 hours
+        return minutes >= 30 && minutes <= 480;
     }
 
     public boolean isWithinAdvanceBookingLimit() {
         if (startTime == null)
             return false;
 
-        // Can book up to 14 days in advance
         LocalDateTime maxAdvance = LocalDateTime.now().plusDays(14);
         return startTime.isBefore(maxAdvance);
     }
@@ -100,10 +98,9 @@ public class CreateReservationRequest {
         if (notes != null && notes.length() > 500) {
             return "Notes cannot exceed 500 characters";
         }
-        return null; // No validation errors
+        return null;
     }
 
-    // Static factory methods for common reservations
     public static CreateReservationRequest forLaundry(Long resourceId, LocalDateTime startTime) {
         CreateReservationRequest request = new CreateReservationRequest();
         request.setResourceId(resourceId);

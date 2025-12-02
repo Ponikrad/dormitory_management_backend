@@ -4,7 +4,6 @@ import com.dorm.manag.entity.User;
 import com.dorm.manag.service.UserService;
 import com.dorm.manag.dto.UpdateUserRequest;
 import com.dorm.manag.repository.UserRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -73,7 +72,7 @@ public class UserController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to update user");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // ← DODAJ RETURN!
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
 
@@ -139,7 +138,7 @@ public class UserController {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Failed to update user");
             errorResponse.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse); // ← DODAJ RETURN!
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
     }
 
@@ -194,13 +193,12 @@ public class UserController {
             String oldPassword = passwords.get("oldPassword");
             String newPassword = passwords.get("newPassword");
 
-            // Sprawdź czy stare hasło jest poprawne
+            // Czy stare hasło poprane
             if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of("error", "Invalid old password"));
             }
 
-            // Ustaw nowe hasło
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
 

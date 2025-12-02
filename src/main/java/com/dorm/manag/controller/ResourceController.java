@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +23,6 @@ public class ResourceController {
 
     private final ReservableResourceRepository resourceRepository;
 
-    /**
-     * Pobierz wszystkie zasoby
-     */
     @GetMapping
     public ResponseEntity<?> getAllResources() {
         try {
@@ -39,9 +35,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Pobierz zasób po ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getResourceById(@PathVariable Long id) {
         try {
@@ -55,9 +48,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Pobierz zasoby po typie
-     */
     @GetMapping("/type/{type}")
     public ResponseEntity<?> getResourcesByType(@PathVariable String type) {
         try {
@@ -71,9 +61,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Pobierz zasoby po piętrze
-     */
     @GetMapping("/floor/{floor}")
     public ResponseEntity<?> getResourcesByFloor(@PathVariable Integer floor) {
         try {
@@ -86,9 +73,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Wyszukaj zasoby po nazwie
-     */
     @GetMapping("/search")
     public ResponseEntity<?> searchResources(@RequestParam String query) {
         try {
@@ -101,9 +85,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Pobierz darmowe zasoby
-     */
     @GetMapping("/free")
     public ResponseEntity<?> getFreeResources() {
         try {
@@ -116,9 +97,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * ADMIN: Stwórz nowy zasób
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createResource(@RequestBody Map<String, Object> request) {
@@ -141,7 +119,7 @@ public class ResourceController {
 
             resource.setIsActive(true);
 
-            // Ustaw defaulty z ResourceType
+            // Defaulty z ResourceType
             ResourceType type = resource.getResourceType();
             resource.setMinReservationDuration(type.getDefaultDurationMinutes() / 2);
             resource.setMaxReservationDuration(type.getMaxDurationMinutes());
@@ -164,9 +142,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * ADMIN: Aktualizuj zasób
-     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateResource(
@@ -206,9 +181,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * ADMIN: Dezaktywuj zasób
-     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deactivateResource(@PathVariable Long id) {
@@ -227,9 +199,6 @@ public class ResourceController {
         }
     }
 
-    /**
-     * Pobierz typy zasobów (enum values)
-     */
     @GetMapping("/types")
     public ResponseEntity<?> getResourceTypes() {
         try {

@@ -1,7 +1,6 @@
 package com.dorm.manag.service;
 
 import com.dorm.manag.entity.Message;
-import com.dorm.manag.entity.MessageStatus;
 import com.dorm.manag.entity.MessageType;
 import com.dorm.manag.entity.User;
 import com.dorm.manag.repository.MessageRepository;

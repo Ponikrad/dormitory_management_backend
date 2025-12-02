@@ -18,8 +18,6 @@ public class ResidentCardDto {
 
     private String userName;
 
-    private String username;
-
     private String userEmail;
 
     private String roomNumber;
@@ -46,7 +44,6 @@ public class ResidentCardDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
-    // Calculated fields
     private String status;
 
     private Long daysUntilExpiration;
@@ -55,7 +52,6 @@ public class ResidentCardDto {
 
     private boolean expiringSoon;
 
-    // Static factory methods
     public static ResidentCardDto createBasic(Long userId, String userName, String qrCode) {
         ResidentCardDto dto = new ResidentCardDto();
         dto.setUserId(userId);
@@ -68,7 +64,6 @@ public class ResidentCardDto {
         return dto;
     }
 
-    // Helper methods for status calculation
     public void calculateStatus() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -95,7 +90,6 @@ public class ResidentCardDto {
         }
     }
 
-    // Convenience methods
     public boolean canAccess() {
         return isActive && !isExpired();
     }
@@ -130,7 +124,6 @@ public class ResidentCardDto {
         return "No expiration info";
     }
 
-    // Builder pattern for convenience
     public static Builder builder() {
         return new Builder();
     }
@@ -150,11 +143,6 @@ public class ResidentCardDto {
 
         public Builder userName(String userName) {
             dto.setUserName(userName);
-            return this;
-        }
-
-        public Builder username(String username) {
-            dto.username = username;
             return this;
         }
 

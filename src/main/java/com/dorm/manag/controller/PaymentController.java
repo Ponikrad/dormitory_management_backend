@@ -32,8 +32,6 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final UserService userService;
 
-    // ========== SPECIFIC ENDPOINTS FIRST (to avoid routing conflicts) ==========
-
     @PostMapping("/create")
     public ResponseEntity<?> createPayment(@Valid @RequestBody CreatePaymentRequest request,
             Authentication authentication) {
@@ -134,8 +132,6 @@ public class PaymentController {
         }
     }
 
-    // ========== DYNAMIC ENDPOINTS LAST (with {id} parameter) ==========
-
     @PostMapping("/{id}/process")
     public ResponseEntity<?> processPayment(@PathVariable Long id, Authentication authentication) {
         try {
@@ -185,7 +181,6 @@ public class PaymentController {
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // Check if user owns the payment or is admin
             if (!payment.getUserId().equals(user.getId()) && !user.getRole().hasAdminPrivileges()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
@@ -213,7 +208,6 @@ public class PaymentController {
             User user = userService.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // Check if user owns the payment or is admin
             if (!payment.getUserId().equals(user.getId()) && !user.getRole().hasAdminPrivileges()) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }

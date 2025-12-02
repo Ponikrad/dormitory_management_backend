@@ -51,7 +51,6 @@ public class DocumentDto {
     private String uploadedByName;
     private String approvedByName;
 
-    // Calculated fields
     private boolean expired;
     private boolean needsReview;
     private boolean approved;

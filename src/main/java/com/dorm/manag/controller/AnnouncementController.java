@@ -4,7 +4,6 @@ import com.dorm.manag.entity.Announcement;
 import com.dorm.manag.entity.User;
 import com.dorm.manag.service.AnnouncementService;
 import com.dorm.manag.service.UserService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,11 +27,8 @@ public class AnnouncementController {
     private final AnnouncementService announcementService;
     private final UserService userService;
 
-    // ========== PUBLIC/STUDENT ENDPOINTS ==========
+    // PUBLIC/STUDENT ENDPOINTS
 
-    /**
-     * Pobierz aktywne ogłoszenia (dla zalogowanego użytkownika)
-     */
     @GetMapping
     public ResponseEntity<?> getPublishedAnnouncements(Authentication authentication) {
         try {
@@ -49,9 +45,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Pobierz przypięte ogłoszenia
-     */
     @GetMapping("/pinned")
     public ResponseEntity<?> getPinnedAnnouncements() {
         try {
@@ -64,9 +57,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Pobierz pilne ogłoszenia
-     */
     @GetMapping("/urgent")
     public ResponseEntity<?> getUrgentAnnouncements() {
         try {
@@ -79,16 +69,12 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Pobierz ogłoszenie po ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getAnnouncementById(@PathVariable Long id) {
         try {
             Announcement announcement = announcementService.getAnnouncementById(id)
                     .orElseThrow(() -> new RuntimeException("Announcement not found"));
 
-            // Zwiększ licznik wyświetleń
             announcementService.incrementViewCount(id);
 
             return ResponseEntity.ok(announcement);
@@ -99,9 +85,7 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Potwierdź przeczytanie ogłoszenia
-     */
+    // Potwierdzenie przeczytania
     @PostMapping("/{id}/acknowledge")
     public ResponseEntity<?> acknowledgeAnnouncement(
             @PathVariable Long id,
@@ -121,9 +105,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Wyszukaj ogłoszenia
-     */
     @GetMapping("/search")
     public ResponseEntity<?> searchAnnouncements(@RequestParam String query) {
         try {
@@ -136,11 +117,8 @@ public class AnnouncementController {
         }
     }
 
-    // ========== ADMIN ENDPOINTS ==========
+    // ADMIN ENDPOINTS
 
-    /**
-     * Stwórz ogłoszenie
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> createAnnouncement(
@@ -176,9 +154,7 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Zaplanuj ogłoszenie
-     */
+    // Zaplanować ogłoszenie
     @PostMapping("/schedule")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> scheduleAnnouncement(
@@ -210,9 +186,7 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Aktualizuj ogłoszenie
-     */
+    // Aktualizacja
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> updateAnnouncement(
@@ -249,9 +223,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Przypnij ogłoszenie
-     */
     @PostMapping("/{id}/pin")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> pinAnnouncement(@PathVariable Long id) {
@@ -265,9 +236,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Odepnij ogłoszenie
-     */
     @PostMapping("/{id}/unpin")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> unpinAnnouncement(@PathVariable Long id) {
@@ -281,9 +249,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Archiwizuj ogłoszenie
-     */
     @PostMapping("/{id}/archive")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> archiveAnnouncement(@PathVariable Long id) {
@@ -297,9 +262,7 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Usuń ogłoszenie
-     */
+    // Del
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteAnnouncement(@PathVariable Long id) {
@@ -313,9 +276,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Pobierz ogłoszenia po typie
-     */
     @GetMapping("/type/{type}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAnnouncementsByType(@PathVariable String type) {
@@ -330,9 +290,7 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Pobierz zaplanowane ogłoszenia
-     */
+    // Pobrać zaplanowane
     @GetMapping("/scheduled")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getScheduledAnnouncements() {
@@ -346,9 +304,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Statystyki ogłoszeń
-     */
     @GetMapping("/statistics")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAnnouncementStatistics() {
@@ -362,9 +317,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Lista typów ogłoszeń
-     */
     @GetMapping("/types")
     public ResponseEntity<?> getAnnouncementTypes() {
         try {
@@ -385,9 +337,6 @@ public class AnnouncementController {
         }
     }
 
-    /**
-     * Lista priorytetów ogłoszeń
-     */
     @GetMapping("/priorities")
     public ResponseEntity<?> getAnnouncementPriorities() {
         try {

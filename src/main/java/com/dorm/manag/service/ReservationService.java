@@ -22,7 +22,6 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final ReservableResourceRepository resourceRepository;
-    private final UserService userService;
     private final NotificationService notificationService;
 
     @Transactional

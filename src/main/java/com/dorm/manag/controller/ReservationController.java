@@ -30,9 +30,6 @@ public class ReservationController {
     private final ReservationService reservationService;
     private final UserService userService;
 
-    /**
-     * Stwórz nową rezerwację
-     */
     @PostMapping
     public ResponseEntity<?> createReservation(
             @Valid @RequestBody CreateReservationRequest request,
@@ -58,9 +55,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * Pobierz moje rezerwacje
-     */
     @GetMapping("/my")
     public ResponseEntity<?> getMyReservations(Authentication authentication) {
         try {
@@ -80,9 +74,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * Pobierz rezerwację po ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getReservationById(@PathVariable Long id) {
         try {
@@ -99,9 +90,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * Anuluj rezerwację
-     */
     @PostMapping("/{id}/cancel")
     public ResponseEntity<?> cancelReservation(
             @PathVariable Long id,
@@ -127,9 +115,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * Check-in do rezerwacji
-     */
     @PostMapping("/{id}/checkin")
     public ResponseEntity<?> checkInReservation(
             @PathVariable Long id,
@@ -155,9 +140,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * ADMIN: Pobierz wszystkie rezerwacje
-     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAllReservations() {
@@ -173,9 +155,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * ADMIN: Pobierz nadchodzące rezerwacje
-     */
     @GetMapping("/upcoming")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getUpcomingReservations() {
@@ -191,9 +170,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * Pobierz rezerwacje dla zasobu w danym okresie
-     */
     @GetMapping("/resource/{resourceId}")
     public ResponseEntity<?> getResourceReservations(
             @PathVariable Long resourceId,
@@ -211,9 +187,6 @@ public class ReservationController {
         }
     }
 
-    /**
-     * ADMIN: Zakończ rezerwację
-     */
     @PostMapping("/{id}/complete")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> completeReservation(@PathVariable Long id) {

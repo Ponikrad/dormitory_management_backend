@@ -21,20 +21,33 @@ import java.util.stream.Collectors;
 public class ResidentCardService {
 
     private final ResidentCardRepository residentCardRepository;
-    private final UserService userService;
 
     @Transactional
     public ResidentCardDto generateCard(User user) {
         log.info("Generating resident card for user: {}", user.getUsername());
 
-        // Check if user already has an active card
-        Optional<ResidentCard> existingCard = residentCardRepository.findByUser(user);
-        if (existingCard.isPresent() && existingCard.get().isActive()) {
-            // Deactivate the old card
-            ResidentCard oldCard = existingCard.get();
-            oldCard.setActive(false);
-            residentCardRepository.save(oldCard);
-            log.info("Deactivated old card for user: {}", user.getUsername());
+        // Check if user already has a card (active or not)
+        Optional<ResidentCard> existingCard = residentCardRepository.findByUserId(user.getId());
+
+        if (existingCard.isPresent()) {
+            ResidentCard card = existingCard.get();
+
+            // If card is already active and not expired, return it
+            if (card.isActive() && !isExpired(card)) {
+                log.info("User already has an active card, returning existing card");
+                return convertToDto(card);
+            }
+
+            // If card exists but is inactive or expired, reactivate it with new QR code
+            log.info("Reactivating existing card for user: {}", user.getUsername());
+            String newQrCode = generateUniqueQrCode();
+            card.setQrCode(newQrCode);
+            card.setActive(true);
+            card.setIssuedDate(LocalDateTime.now());
+            card.setExpirationDate(LocalDateTime.now().plusYears(1));
+
+            ResidentCard savedCard = residentCardRepository.save(card);
+            return convertToDto(savedCard);
         }
 
         // Generate new QR code
@@ -47,15 +60,18 @@ public class ResidentCardService {
         residentCard.setIssuedDate(LocalDateTime.now());
         residentCard.setExpirationDate(LocalDateTime.now().plusYears(1)); // Card valid for 1 year
         residentCard.setActive(true);
+        residentCard.setUsageCount(0L);
+        residentCard.setAccessLevel("BASIC");
 
         ResidentCard savedCard = residentCardRepository.save(residentCard);
+        log.info("Successfully generated new card for user: {}", user.getUsername());
 
         return convertToDto(savedCard);
     }
 
     @Transactional(readOnly = true)
     public Optional<ResidentCardDto> getCardByUser(User user) {
-        return residentCardRepository.findByUser(user)
+        return residentCardRepository.findByUserId(user.getId())
                 .filter(ResidentCard::isActive)
                 .map(this::convertToDto);
     }
@@ -73,7 +89,12 @@ public class ResidentCardService {
 
         return residentCardRepository.findByQrCode(qrCode)
                 .filter(card -> card.isActive() && !isExpired(card))
-                .map(this::convertToDto);
+                .map(card -> {
+                    // Record usage
+                    card.recordUsage();
+                    residentCardRepository.save(card);
+                    return convertToDto(card);
+                });
     }
 
     @Transactional
@@ -117,7 +138,8 @@ public class ResidentCardService {
     }
 
     private boolean isExpired(ResidentCard card) {
-        return card.getExpirationDate().isBefore(LocalDateTime.now());
+        return card.getExpirationDate() != null &&
+                card.getExpirationDate().isBefore(LocalDateTime.now());
     }
 
     private ResidentCardDto convertToDto(ResidentCard card) {
@@ -125,12 +147,20 @@ public class ResidentCardService {
         dto.setId(card.getId());
         dto.setUserId(card.getUser().getId());
         dto.setUserName(card.getUser().getFirstName() + " " + card.getUser().getLastName());
-        dto.setUserName(card.getUser().getUsername());
+        dto.setUserEmail(card.getUser().getEmail());
         dto.setRoomNumber(card.getUser().getRoomNumber());
         dto.setQrCode(card.getQrCode());
+        dto.setCardNumber(card.getCardNumber());
+        dto.setAccessLevel(card.getAccessLevel());
         dto.setIssuedDate(card.getIssuedDate());
         dto.setExpirationDate(card.getExpirationDate());
         dto.setActive(card.isActive());
+        dto.setLastUsed(card.getLastUsed());
+        dto.setUsageCount(card.getUsageCount());
+        dto.setCreatedAt(card.getCreatedAt());
+
+        // Calculate status
+        dto.calculateStatus();
 
         return dto;
     }

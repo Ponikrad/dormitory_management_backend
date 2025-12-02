@@ -67,7 +67,6 @@ public class IssueDto {
 
     private Integer actualResolutionTimeHours;
 
-    // Calculated fields
     private boolean overdue;
 
     private long hoursSinceReported;
@@ -82,16 +81,13 @@ public class IssueDto {
 
     private String categoryDisplay;
 
-    // Helper methods
     public void calculateFields() {
         LocalDateTime now = LocalDateTime.now();
 
-        // Calculate hours since reported
         if (reportedAt != null) {
             this.hoursSinceReported = java.time.temporal.ChronoUnit.HOURS.between(reportedAt, now);
         }
 
-        // Calculate overdue and hours until due
         if (estimatedResolution != null && !status.isClosed()) {
             this.overdue = now.isAfter(estimatedResolution);
             this.hoursUntilDue = java.time.temporal.ChronoUnit.HOURS.between(now, estimatedResolution);
@@ -102,16 +98,13 @@ public class IssueDto {
             this.hoursUntilDue = 0;
         }
 
-        // Calculate urgent attention requirement
         this.requiresUrgentAttention = (priority != null && priority.requiresImmediateAttention()) || overdue;
 
-        // Set display strings
         this.statusDisplay = status != null ? status.getDisplayName() : "Unknown";
         this.priorityDisplay = priority != null ? priority.getDisplayName() : "Unknown";
         this.categoryDisplay = category != null ? category.getDisplayName() : "Unknown";
     }
 
-    // Status check methods
     public boolean isOpen() {
         return status != null && !status.isClosed();
     }
@@ -128,7 +121,6 @@ public class IssueDto {
         return status != null && status.canBeReopened();
     }
 
-    // Display helper methods
     public String getFormattedReportedTime() {
         if (reportedAt == null)
             return "Unknown";
@@ -161,7 +153,6 @@ public class IssueDto {
         return priority != null ? priority.getDisplayName().toUpperCase() : "NORMAL";
     }
 
-    // Builder pattern
     public static Builder builder() {
         return new Builder();
     }

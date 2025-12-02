@@ -41,12 +41,13 @@ spring:
   # ========================================
   jpa:
     database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
     hibernate:
       ddl-auto: update # Use 'validate' in production
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false # Set to false in production
+
     properties:
       hibernate:
         jdbc:
@@ -137,14 +138,6 @@ management:
 # CUSTOM APPLICATION PROPERTIES
 # ========================================
 
-# JWT Configuration
-jwt:
-  secret: ${JWT_SECRET:mySecretKey123!@#$%^&*()_+ABCDEFGHIJKLMNOPQRSTUVWXYZ}
-  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
-  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
-  header: Authorization
-  prefix: "Bearer "
-
 # File Storage Configuration
 file:
   upload-dir: ${FILE_UPLOAD_DIR:uploads/}
@@ -156,11 +149,17 @@ app:
   name: Dormitory Management System
   version: 1.0.0
   description: Comprehensive dormitory management solution
+
+  # ✅ JWT CONFIGURATION - DLA JwtTokenProvider.java
+  jwtSecret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidation1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890}
+  jwtExpirationInMs: ${JWT_EXPIRATION:86400000}
+
   contact:
     name: Support Team
     email: support@dormitory.com
+
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8000,http://localhost:4200}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8000,http://localhost:4200}
     allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
     allowed-headers: "*"
     allow-credentials: true

@@ -60,7 +60,6 @@ public class PaymentDto {
 
     private String failureReason;
 
-    // Calculated fields
     private boolean overdue;
 
     private long daysUntilDue;
@@ -69,7 +68,6 @@ public class PaymentDto {
 
     private String statusDisplay;
 
-    // Helper methods
     public void calculateFields() {
         this.overdue = dueDate != null && LocalDateTime.now().isAfter(dueDate) &&
                 status != PaymentStatus.COMPLETED;
@@ -84,7 +82,6 @@ public class PaymentDto {
         this.statusDisplay = status != null ? status.getDisplayName() : "Unknown";
     }
 
-    // Static factory methods
     public static PaymentDto fromBasicData(Long userId, BigDecimal amount, PaymentMethod method, String description) {
         PaymentDto dto = new PaymentDto();
         dto.setUserId(userId);
@@ -98,7 +95,6 @@ public class PaymentDto {
         return dto;
     }
 
-    // Builder pattern
     public static Builder builder() {
         return new Builder();
     }

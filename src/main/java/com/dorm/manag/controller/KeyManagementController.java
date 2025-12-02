@@ -12,7 +12,6 @@ import com.dorm.manag.service.KeyManagementService;
 import com.dorm.manag.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,9 +34,8 @@ public class KeyManagementController {
     private final UserService userService;
     private final KeyRepository keyRepository;
 
-    /**
-     * Pobierz wszystkie klucze (ADMIN/RECEPTIONIST)
-     */
+    // Pobierz wszystkie klucze
+
     @GetMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAllKeys() {
@@ -51,9 +49,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz dostępne klucze
-     */
     @GetMapping("/available")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAvailableKeys() {
@@ -67,9 +62,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz klucze po typie
-     */
     @GetMapping("/type/{keyType}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getKeysByType(@PathVariable String keyType) {
@@ -84,9 +76,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz klucz po ID
-     */
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getKeyById(@PathVariable Long id) {
@@ -101,9 +90,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz moje klucze
-     */
     @GetMapping("/my")
     public ResponseEntity<?> getMyKeys(Authentication authentication) {
         try {
@@ -120,9 +106,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Wydaj klucz (RECEPTIONIST/ADMIN)
-     */
     @PostMapping("/{keyId}/issue")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> issueKey(
@@ -155,9 +138,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Zwróć klucz (RECEPTIONIST/ADMIN)
-     */
     @PostMapping("/assignments/{assignmentId}/return")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> returnKey(
@@ -187,9 +167,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Zgłoś zgubiony klucz
-     */
     @PostMapping("/assignments/{assignmentId}/report-lost")
     public ResponseEntity<?> reportKeyLost(
             @PathVariable Long assignmentId,
@@ -209,9 +186,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Zgłoś uszkodzony klucz (ADMIN/RECEPTIONIST)
-     */
     @PostMapping("/{keyId}/report-damaged")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> reportKeyDamaged(
@@ -235,9 +209,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Stwórz nowy klucz (ADMIN)
-     */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> createKey(
@@ -267,9 +238,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Aktualizuj klucz (ADMIN)
-     */
     @PutMapping("/{keyId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateKey(
@@ -298,7 +266,6 @@ public class KeyManagementController {
                 }
             }
 
-            // ⭐ Zmiana statusu
             if (request.containsKey("status")) {
                 KeyStatus newStatus = KeyStatus.valueOf(request.get("status").toUpperCase());
                 key.setStatus(newStatus);
@@ -312,7 +279,6 @@ public class KeyManagementController {
 
             log.info("Key {} updated by {}", key.getKeyCode(), username);
 
-            // ✅ POPRAWIONE: Użyj service do pobrania DTO
             KeyDto keyDto = keyManagementService.getKeyById(savedKey.getId())
                     .orElseThrow(() -> new RuntimeException("Failed to retrieve updated key"));
 
@@ -328,9 +294,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz aktywne przypisania (ADMIN/RECEPTIONIST)
-     */
     @GetMapping("/assignments/active")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getActiveAssignments() {
@@ -344,9 +307,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz przeterminowane przypisania (ADMIN/RECEPTIONIST)
-     */
     @GetMapping("/assignments/overdue")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getOverdueAssignments() {
@@ -360,9 +320,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz moje przypisania kluczy
-     */
     @GetMapping("/assignments/my")
     public ResponseEntity<?> getMyAssignments(Authentication authentication) {
         try {
@@ -379,9 +336,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Przedłuż przypisanie klucza (ADMIN/RECEPTIONIST)
-     */
     @PostMapping("/assignments/{assignmentId}/extend")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> extendAssignment(
@@ -411,9 +365,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz klucze wymagające uwagi (ADMIN/RECEPTIONIST)
-     */
     @GetMapping("/attention")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getKeysNeedingAttention() {
@@ -427,9 +378,6 @@ public class KeyManagementController {
         }
     }
 
-    /**
-     * Pobierz statystyki kluczy (ADMIN)
-     */
     @GetMapping("/statistics")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getKeyStatistics() {

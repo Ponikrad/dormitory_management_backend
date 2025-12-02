@@ -27,7 +27,7 @@ public class MessageController {
     private final MessageService messageService;
     private final UserService userService;
 
-    // ========== USER ENDPOINTS ==========
+    // USER
 
     @PostMapping("/send")
     public ResponseEntity<?> sendMessage(@RequestParam String subject,
@@ -228,7 +228,7 @@ public class MessageController {
         }
     }
 
-    // ========== ADMIN ENDPOINTS ==========
+    // ADMIN
 
     @GetMapping("/requiring-response")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")

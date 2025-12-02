@@ -32,11 +32,8 @@ public class IssueController {
     private final IssueService issueService;
     private final UserService userService;
 
-    // ========== STUDENT ENDPOINTS ==========
+    // STUDENT
 
-    /**
-     * Zgłoś problem
-     */
     @PostMapping("/report")
     public ResponseEntity<?> reportIssue(
             @Valid @RequestBody CreateIssueRequest request,
@@ -62,9 +59,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Moje zgłoszenia
-     */
     @GetMapping("/my-issues")
     public ResponseEntity<?> getMyIssues(
             @RequestParam(defaultValue = "0") int page,
@@ -96,9 +90,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Pobierz zgłoszenie po ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> getIssueById(@PathVariable Long id, Authentication authentication) {
         try {
@@ -127,9 +118,8 @@ public class IssueController {
         }
     }
 
-    /**
-     * Otwórz ponownie zgłoszenie
-     */
+    // Otwórz ponownie zgłoszenie
+
     @PostMapping("/{id}/reopen")
     public ResponseEntity<?> reopenIssue(@PathVariable Long id, Authentication authentication) {
         try {
@@ -151,9 +141,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Oceń rozwiązanie problemu
-     */
     @PostMapping("/{id}/rate")
     public ResponseEntity<?> rateIssue(
             @PathVariable Long id,
@@ -183,11 +170,8 @@ public class IssueController {
         }
     }
 
-    // ========== ADMIN & RECEPTIONIST ENDPOINTS ==========
+    // ADMIN/RECEPTIONIST
 
-    /**
-     * Wszystkie zgłoszenia
-     */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAllIssues() {
@@ -206,9 +190,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Otwarte zgłoszenia
-     */
     @GetMapping("/open")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getOpenIssues() {
@@ -222,9 +203,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Pilne zgłoszenia
-     */
     @GetMapping("/urgent")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getUrgentIssues() {
@@ -238,9 +216,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Przeterminowane zgłoszenia
-     */
     @GetMapping("/overdue")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getOverdueIssues() {
@@ -254,9 +229,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Zgłoszenia po kategorii
-     */
     @GetMapping("/by-category/{category}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getIssuesByCategory(@PathVariable IssueCategory category) {
@@ -270,9 +242,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Zgłoszenia po statusie
-     */
     @GetMapping("/by-status/{status}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getIssuesByStatus(@PathVariable IssueStatus status) {
@@ -286,9 +255,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Zgłoszenia przypisane do mnie
-     */
     @GetMapping("/assigned-to-me")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> getAssignedIssues(Authentication authentication) {
@@ -306,11 +272,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Niepotwier
-     * 
-     * dzone zgłoszenia
-     */
     @GetMapping("/unacknowledged")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getUnacknowledgedIssues(@RequestParam(defaultValue = "2") int hoursThreshold) {
@@ -324,9 +285,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Wyszukaj zgłoszenia
-     */
     @GetMapping("/search")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> searchIssues(
@@ -344,9 +302,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Zaktualizuj status zgłoszenia
-     */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> updateIssueStatus(
@@ -368,9 +323,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Przypisz zgłoszenie do użytkownika
-     */
     @PutMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> assignIssue(
@@ -391,9 +343,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Dodaj notatki o rozwiązaniu
-     */
     @PutMapping("/{id}/resolution-notes")
     @PreAuthorize("hasRole('ADMIN') or hasRole('RECEPTIONIST')")
     public ResponseEntity<?> addResolutionNotes(
@@ -414,11 +363,6 @@ public class IssueController {
         }
     }
 
-    // ========== STATISTICS ENDPOINTS ==========
-
-    /**
-     * Statystyki zgłoszeń
-     */
     @GetMapping("/stats")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getIssueStatistics() {
@@ -432,9 +376,6 @@ public class IssueController {
         }
     }
 
-    /**
-     * Dashboard - wszystkie statystyki
-     */
     @GetMapping("/stats/dashboard")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getDashboardStats() {
@@ -461,27 +402,16 @@ public class IssueController {
         }
     }
 
-    // ========== UTILITY ENDPOINTS ==========
-
-    /**
-     * Lista kategorii
-     */
     @GetMapping("/categories")
     public ResponseEntity<?> getIssueCategories() {
         return ResponseEntity.ok(IssueCategory.values());
     }
 
-    /**
-     * Lista statusów
-     */
     @GetMapping("/statuses")
     public ResponseEntity<?> getIssueStatuses() {
         return ResponseEntity.ok(IssueStatus.values());
     }
 
-    /**
-     * Lista priorytetów
-     */
     @GetMapping("/priorities")
     public ResponseEntity<?> getIssuePriorities() {
         return ResponseEntity.ok(IssuePriority.values());

@@ -33,20 +33,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         try {
-            // Pobierz ścieżkę requestu
             String path = request.getRequestURI();
 
-            // Pomiń filtr JWT dla publicznych endpointów
+            // Pomiń JWT dla public endpointów
             if (isPublicEndpoint(path)) {
                 log.debug("Public endpoint accessed: {}", path);
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // Pobierz token z headera
+            // Token z headera
             String jwt = getJwtFromRequest(request);
 
-            // Jeśli token istnieje i jest prawidłowy, ustaw autentykację
             if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
                 String username = jwtTokenProvider.getUsernameFromToken(jwt);
 
@@ -62,7 +60,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                log.debug("User '{}' authenticated successfully", username);
+                log.debug("User '{}' authenticated successfully with authorities: {}",
+                        username, userDetails.getAuthorities());
+            } else {
+                log.warn("JWT token not found or invalid in request");
             }
         } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
@@ -71,26 +72,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Sprawdza czy endpoint jest publiczny (nie wymaga tokena JWT)
-     */
     private boolean isPublicEndpoint(String path) {
-        return path.startsWith("/api/auth/") || // Wszystkie endpointy auth
-                path.startsWith("/api/cards/verify/") || // Weryfikacja kart
-                path.equals("/api/auth/login") || // Login
-                path.equals("/api/auth/register") || // Rejestracja
-                path.equals("/api/auth/logout") || // Logout
-                path.equals("/api/auth/check") || // Check auth status
-                path.startsWith("/actuator/") || // Actuator endpoints
-                path.startsWith("/swagger-ui/") || // Swagger UI
-                path.startsWith("/v3/api-docs/") || // OpenAPI docs
-                path.equals("/api-docs") || // API docs
-                path.equals("/swagger-ui.html"); // Swagger HTML
+        return path.equals("/api/auth/login") ||
+                path.equals("/api/auth/register") ||
+                path.equals("/api/auth/check") || //
+                path.startsWith("/api/cards/verify/") ||
+                path.startsWith("/actuator/") ||
+                path.startsWith("/swagger-ui/") ||
+                path.startsWith("/v3/api-docs/") ||
+                path.equals("/api-docs") ||
+                path.equals("/swagger-ui.html");
     }
 
-    /**
-     * Wyciąga token JWT z nagłówka Authorization
-     */
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
 

@@ -39,7 +39,6 @@ public class CreatePaymentRequest {
     @Size(max = 3, message = "Currency code must be 3 characters")
     private String currency = "PLN";
 
-    // Validation methods
     public boolean isValidAmount() {
         return amount != null && amount.compareTo(BigDecimal.ZERO) > 0 &&
                 amount.compareTo(new BigDecimal("10000.00")) <= 0;
@@ -63,7 +62,6 @@ public class CreatePaymentRequest {
                 isValidPeriod();
     }
 
-    // Helper methods
     public String getFormattedAmount() {
         return amount != null ? String.format("%.2f %s", amount, currency) : "0.00 PLN";
     }
@@ -72,7 +70,6 @@ public class CreatePaymentRequest {
         return periodStart != null && periodEnd != null;
     }
 
-    // Static factory methods
     public static CreatePaymentRequest forRent(BigDecimal amount, String roomNumber) {
         CreatePaymentRequest request = new CreatePaymentRequest();
         request.setAmount(amount);
